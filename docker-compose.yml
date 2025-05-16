@@ -1,0 +1,20 @@
+version: '3.3'
+
+services:
+  db:
+    image: postgres:13
+    container_name: formalink
+    environment:
+      POSTGRES_USER: aloy # ← Change this to your desired project username
+      POSTGRES_PASSWORD: aloy # ← Change this to your desired project password
+      POSTGRES_DB: formalink_db # ← Change this to your desired project database name
+    ports:
+      - "5555:5432" # ← HostPort:ContainerPort  ( AS the 5432 already in use i have configured to use 5555)
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    networks:
+      - fastapi_network
+
+networks:
+  fastapi_network:
+    driver: bridge
