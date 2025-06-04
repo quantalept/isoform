@@ -1,8 +1,7 @@
 from fastapi import FastAPI
-from app.api import user,product,purchase
+from app.api import admin_user, forms
 
-app = FastAPI(title="FastAPI Template")
+app = FastAPI(title="Forms API", version="1.0.0")
 
-app.include_router(user.router, prefix="/api/v1", tags=["Users"])
-app.include_router(product.router, prefix="/api/v1", tags=["Products"])
-app.include_router(purchase.router, prefix="/api/v1", tags=["Purchases"])
+app.include_router(admin_user.router, prefix="/forms", tags=["Users"])
+app.include_router(forms.router, prefix="/forms", tags=["Forms"])

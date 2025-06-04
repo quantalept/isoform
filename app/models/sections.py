@@ -16,3 +16,4 @@ class Sections(Base):
     # Relationships
     form = relationship("FormsModel", back_populates="sections")
     questions = relationship("Questions", back_populates="section")  # Assuming Questions has a section relationship
+    logics = relationship("Logic", back_populates="section", cascade="all, delete-orphan")

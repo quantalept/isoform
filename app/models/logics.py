@@ -17,5 +17,6 @@ class Logic(Base):
 
     # Relationships
     form = relationship("FormsModel", back_populates="logics")
-    question = relationship("Questions", back_populates="logics")
+    source_question = relationship("Questions",foreign_keys=[source_question_id],back_populates="source_logics")
+    target_question = relationship("Questions",foreign_keys=[target_question_id],back_populates="target_logics")
     section = relationship("Sections", back_populates="logics")

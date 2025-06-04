@@ -34,7 +34,7 @@ if config.config_file_name is not None:
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./test.db")
+DATABASE_URL = os.getenv("SQLALCHEMY_DATABASE_URI", "sqlite:///./test.db")
 config.set_main_option("sqlalchemy.url", DATABASE_URL)
 
 target_metadata = Base.metadata 
