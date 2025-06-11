@@ -1,4 +1,13 @@
-env/
-__pycache__
-venv
-.cache
+# Ignore Python cache files
+__pycache__/
+*.pyc
+
+# Ignore virtual environments
+venv/
+
+# Ignore alembic migration scripts
+alembic/versions/
+alembic/__pycache__/
+
+# Optional: exclude data dir if it gives permission error
+data/
