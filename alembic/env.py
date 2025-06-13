@@ -15,6 +15,8 @@ from app.models.options import Options
 from app.models.response import Response  
 from app.models.sections import Sections  
 from app.models.logics import Logic
+import sys
+sys.path.append(os.path.abspath("."))  # ensures app is importable
 
 
 
@@ -61,7 +63,7 @@ def run_migrations_offline() -> None:
     url = os.getenv("DATABASE_URL")
     context.configure(
         url=url,
-        target_metadata=target_metadata,
+        target_metadata=Base.metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
     )

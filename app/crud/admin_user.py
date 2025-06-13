@@ -12,21 +12,21 @@ class AdminUserService:
     def __init__(self, db: Session):
         self.db = db
 
-    def get_admin_user_by_mail(self, email: str):
+    async def get_admin_user_by_mail(self, email: str):
         try:
             validate_email(email)
         except EmailNotValidError as e:
             raise HTTPException(status_code=400, detail=f"Invalid email: {e}")
         
-        result = self.db.query(AdminUserModel.admin_user_id, AdminUserModel.username).filter(AdminUserModel.email == email).first()
+        result = await self.db.query(AdminUserModel.admin_user_id, AdminUserModel.username).filter(AdminUserModel.email == email).first()
         if not result:
             raise HTTPException(status_code=404, detail="Admin user not found")
         return {"admin_user_id": str(result.admin_user_id), "username": result.username}
 
-    def get_admin_users(self, skip: int = 0, limit: int = 100) -> List[AdminUserModel]:
-        return self.db.query(AdminUserModel).offset(skip).limit(limit).all()
+    async def get_admin_users(self, skip: int = 0, limit: int = 100) -> List[AdminUserModel]:
+        return await self.db.query(AdminUserModel).offset(skip).limit(limit).all()
 
-    def create_admin_user(self, admin_user: AdminUserCreateDTO) -> AdminUserModel:
+    async def create_admin_user(self, admin_user: AdminUserCreateDTO) -> AdminUserModel:
         try:
             validate_email(admin_user.email)
         except EmailNotValidError as e:
@@ -47,7 +47,7 @@ class AdminUserService:
             hashed_password=hashed_password.decode('utf-8'),
             username=admin_user.username
         )
-        self.db.add(db_admin_user)
-        self.db.commit()
-        self.db.refresh(db_admin_user)
+        await self.db.add(db_admin_user)
+        await self.db.commit()
+        await self.db.refresh(db_admin_user)
         return db_admin_user

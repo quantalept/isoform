@@ -91,7 +91,7 @@ To keep secrets like passwords and API keys safe, use a .env file to store them 
 
 import os
 PROJECT_NAME: str = os.getenv("PROJECT_NAME")
-usually he values of database url and other such things will be stored here 
+usually the values of database url and other such things will be stored here 
 
 This keeps your credentials safe and configurable across environments.)
 

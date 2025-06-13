@@ -15,9 +15,9 @@ class AnswerCreateDTO(BaseModel):
 
     @field_validator("answer_text")
     @classmethod
-    def check_answer(cls, v, values):
+    async def check_answer(cls, v, values):
         qtype = values.data.get("question_type")
-        return validate_answer_type(v, qtype)
+        return await validate_answer_type(v, qtype)
 
 class AnswerUpdateDTO(BaseModel):
     question_id: Optional[int] = None
