@@ -1,15 +1,15 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
 from app.models import questions
 from uuid import UUID
 
 class Questions:
-    def __init__(self, db:Session):
+    def __init__(self, db:AsyncSession):
         self.db = db
 
 #create 
 async def create_question(self,
-    db:Session, 
+    db:AsyncSession, 
     form_id:UUID,
     response_id: int, 
     question_id: int, 
@@ -25,8 +25,8 @@ async def create_question(self,
         )
 
         self.db.add(new_question)
-        self.db.commit()
-        self.db.refresh(new_question)
+        await self.db.commit()
+        await self.db.refresh(new_question)
         return new_question
     except SQLAlchemyError as e:
         db.rollback()
@@ -35,24 +35,24 @@ async def create_question(self,
 
 #read
 #all
-async def read_all_questions(self,db:Session):
+async def read_all_questions(self,db:AsyncSession):
     try:
-        return await self.db.query(questions).ordre_by().all()
+        return self.db.query(questions).ordre_by().all()
     except SQLAlchemyError as e:
         raise RuntimeError(f"Database error while fetching all :{str(e)}")
 
         
 #one at time
-async def read_questions_ID(self,db:Session,question_id:int):
+async def read_questions_ID(self,db:AsyncSession,question_id:int):
     try:
-        return await self.db.query(questions).filter(questions.question_id == question_id).first()
+        return self.db.query(questions).filter(questions.question_id == question_id).first()
     except SQLAlchemyError as e:
         raise RuntimeError(f"Database error while fetching ID :{str(e)}")
 
 #update
 
 async def update_question(self,
-    db:Session, 
+    db:AsyncSession, 
     question_id: int, 
     form_id:UUID = None,
     section_uuid:UUID = None, 
@@ -89,7 +89,7 @@ async def update_question(self,
     
 #delete
 
-async def delete_question(self,db:Session,question_id: int):
+async def delete_question(self,db:AsyncSession,question_id: int):
     try:
         question = self.db.query(questions).filter(questions.question_id == question_id).first()
         if not question:

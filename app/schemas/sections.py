@@ -1,5 +1,6 @@
 from pydantic import BaseModel, UUID4
 
+
 class SectionBase(BaseModel):
     form_id: UUID4
     section_id: int

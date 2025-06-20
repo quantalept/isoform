@@ -10,7 +10,6 @@ class Logic(Base):
     form_id = Column(UUID(as_uuid=True), ForeignKey("forms.form_id"), nullable=False)
     source_question_id = Column(Integer, ForeignKey("questions.question_id"), nullable=False)
     operator = Column(String, nullable=False)
-
     target_question_id = Column(Integer, ForeignKey("questions.question_id"), nullable=True)
     target_section_uuid = Column(UUID, ForeignKey("sections.section_uuid"), nullable=True)
     value = Column(String, nullable=False)

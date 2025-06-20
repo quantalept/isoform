@@ -6,7 +6,8 @@ class QuestionBase(BaseModel):
     question_type: str
     is_required: bool
     order: int
-
+    form_id: UUID4
+    
 class QuestionCreateDTO(QuestionBase):
     pass
 

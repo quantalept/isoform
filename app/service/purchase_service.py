@@ -27,7 +27,7 @@ class PurchaseService:
                 "total_price": purchase.total_price
             }
 
-            product = self.product_crud.get(purchase.product_id)
+            product = await self.product_crud.get(purchase.product_id)
             if product:
                 product_info.update({
                     "product_name": product.prod_name,

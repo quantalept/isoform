@@ -1,15 +1,16 @@
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
 from app.models import answers
 from uuid import UUID
 
 class Answer:
-    def __init__(self, db: Session):
+    def __init__(self, db: AsyncSession):
         self.db = db
 
 #create
-    async def create_answer(self,db:Session,
-                     answer_id:int,
+    async def create_answer(self,db:AsyncSession,
+                     answer_id:UUID,
                      response_id: int, 
                      question_id: int, 
                      answer_text: dict
@@ -21,7 +22,7 @@ class Answer:
                 question_id=int,
                 answer_text=str
             )
-            await self.db.add(new_answer)
+            self.db.add(new_answer)
             await self.db.commit()
             await self.db.refresh(new_answer)
             return new_answer
@@ -30,20 +31,24 @@ class Answer:
             raise RuntimeError(f"Database error while creating :{str(e)}")
 
 #read
-    async def read_answer(self, answer_id):
-        try:
-            return await self.db.query(answers).all()
-        except SQLAlchemyError as e:
-            raise RuntimeError (f"Database error while fetching all :{str(e)}")
-        
+async def read_answer(self, answer_id: int, answer_text: str):
+    try:
+        stmt = select(Answer).filter(Answer.id == answer_id, Answer.text == answer_text)
+        result = await self.db.execute(stmt)
+        answers = result.scalars().all()
+        return answers
+    except SQLAlchemyError as e:
+        raise RuntimeError(f"Database error while fetching answers: {str(e)}")
+    
+    
 #update
-    async def update(self, db:Session,
+async def update(self, db:AsyncSession,
                      answer_id:int,
                      response_id:int= None,
                      question_id:int = None, 
                      answer_text: dict =None):
         try:
-            answer = self.db.query(answers).filter(answers.answer_id == answer_id).first()
+            answer = await self.db.query(answers).filter(answers.answer_id == answer_id).first()
 
             if not answer:
                 raise ValueError(f"Answer {answer_id} not found.")
@@ -64,9 +69,9 @@ class Answer:
             raise RuntimeError(f"Database error while updating :{str(e)}")
         
 #delete
-    async def delete_answer(self, db:Session,answer_id:int):
+async def delete_answer(self, db:AsyncSession,answer_id:int):
         try:
-            answer = self.db.query(answers).filter(answers.answer_id == answer_id).first()
+            answer = await self.db.query(answers).filter(answers.answer_id == answer_id).first()
             if not answer:
                 raise ValueError(f"Answer {answer_id} not found.")
             await self.db.delete(answer)
