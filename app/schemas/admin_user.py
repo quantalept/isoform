@@ -4,8 +4,6 @@ from typing import Optional
 class AdminUserBaseDTO(BaseModel):
     username: str
     email: EmailStr
-    phone_number: Optional[str] = None
-
 class AdminUserCreateDTO(AdminUserBaseDTO):
     password: str
 
@@ -21,5 +19,6 @@ class AdminUserLoginReqDTO(BaseModel):
 class AdminUserResponseDTO(AdminUserBaseDTO):
     admin_user_id: UUID4
 
+
     class Config:
-        orm_mode = True
+        from_attributes = True  # For compatibility with SQLAlchemy objects

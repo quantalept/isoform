@@ -1,29 +1,34 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
-from app.schemas.admin_user import AdminUserCreateDTO, AdminUserUpdateDTO
+from app.crud.forms import FormsService
+from app.schemas.forms import FormCreateDTO, FormResponseDTO
 
 router = APIRouter()
-@router.get("/admin_users/{email}")
-async def get_admin_user_by_email(email: str, db: Session = Depends(get_db)):
-    from app.crud.admin_user import AdminUserService
-    admin_user_service = AdminUserService(db)
-    return admin_user_service.get_admin_user_by_mail(email=email)
 
-@router.get("/admin_users/")
-async def get_admin_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    from app.crud.admin_user import AdminUserService
-    admin_user_service = AdminUserService(db)
-    return admin_user_service.get_admin_users(skip=skip, limit=limit)
+@router.get("/forms/{form_id}", response_model=FormResponseDTO)
+async def get_form_by_id(form_id: str, db: AsyncSession = Depends(get_db)):
+    form_service = FormsService(db)
+    return await form_service.get_form_by_id(form_id=form_id)       
 
-@router.post("/admin_users/")
-async def create_admin_user(admin_user: AdminUserCreateDTO, db: Session = Depends(get_db)):
-    from app.crud.admin_user import AdminUserService
-    admin_user_service = AdminUserService(db)
-    return admin_user_service.create_admin_user(admin_user=admin_user)
+@router.get("/forms/", response_model=list[FormResponseDTO])
+async def get_forms(skip: int = 0, limit: int = 100, db: AsyncSession = Depends(get_db)):
+    form_service = FormsService(db)
+    return await form_service.get_forms(skip=skip, limit=limit)
 
-@router.put("/admin_users/{admin_user_id}")
-async def update_admin_user(admin_user_id: int, admin_user: dict, db: Session = Depends(get_db)):
-    from app.crud.admin_user import AdminUserService
-    admin_user_service = AdminUserService(db)
-    return admin_user_service.update_admin_user(admin_user_id=admin_user_id, admin_user=admin_user)
+@router.post("/forms/", response_model=FormResponseDTO)
+async def create_form(form: FormCreateDTO, db: AsyncSession = Depends(get_db)):
+    form_service = FormsService(db)
+    return await form_service.create_form(form=form)
+
+@router.put("/forms/{form_id}", response_model=FormResponseDTO)
+async def update_form(form_id: str, form: FormCreateDTO, db: AsyncSession = Depends(get_db)):
+    form_service = FormsService(db)
+    return await form_service.update_form(form_id=form_id, form=form)
+
+@router.delete("/forms/{form_id}", response_model=dict)
+async def delete_form(form_id: str, db: AsyncSession = Depends(get_db)):
+    form_service = FormsService(db)
+    await form_service.delete_form(form_id=form_id)
+    return {"message": "Form deleted successfully"}
+

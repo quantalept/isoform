@@ -1,13 +1,19 @@
-from fastapi import FastAPI
-from app.api import admin_user, forms , questions, answers, sections,logics
+# main.py
+from fastapi import FastAPI, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.db.session import get_db
+from app.models.user import User
+from sqlalchemy.future import select
+from app.api import admin_user,questions,forms
 
+app = FastAPI()
 
-app = FastAPI(title="Forms API", version="1.0.0")
+@app.get("/users")
+async def read_users(session: AsyncSession = Depends(get_db)):
+    result = await session.execute(select(User))
+    users = result.scalars().all()
+    return users
 
 app.include_router(admin_user.router, prefix="/forms", tags=["Users"])
 app.include_router(forms.router, prefix="/forms", tags=["Forms"])
-app.include_router(sections.router,prefix="/sections",tags=["Section"])
-app.include_router(questions.router,prefix="/questions",tags=["Questions"])
-app.include_router(answers.router,prefix="/answers",tags=["Answers"])
-app.include_router(logics.router,prefix="/logics",tags=["Logics"])
-
+app.include_router(questions.router, prefix="/forms", tags=["Questions"])

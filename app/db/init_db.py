@@ -1,6 +1,12 @@
-from db.session import engine
+# database/init_db.py
+import asyncio
 from db.base import Base
-from models.user import User  # Make sure model is imported
+from db.session import engine
+from models import user  # make sure all models are imported
 
-def init_db():
-    Base.metadata.create_all(bind=engine)
+async def init_db():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+if __name__ == "__main__":
+    asyncio.run(init_db())

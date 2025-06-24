@@ -1,5 +1,6 @@
-version: '3.3'
-
+# File: docker-compose.yml
+# This file is used to define and run multi-container Docker applications.
+# It specifies the services, networks, and volumes required for the application.
 services:
   db:
     image: postgres:13
