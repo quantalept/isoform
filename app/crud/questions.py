@@ -1,6 +1,9 @@
+from typing import List
+from fastapi import HTTPException
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
-from app.models import questions
+from app.models.questions import Questions
 from uuid import UUID
 
 class Questions:
@@ -8,46 +11,38 @@ class Questions:
         self.db = db
 
 #create 
-async def create_question(self,
-    db:AsyncSession, 
-    form_id:UUID,
-    response_id: int, 
-    question_id: int, 
-    section_uuid:UUID, 
-    question_text:dict
-  ):
-    try:
-        new_question = questions(
-            form_id = UUID(),
-            question_id =int,
-            section_uuid = UUID,
-            question_text = str,
-        )
+async def create_question(
+        self,
+        form_id: UUID,
+        question_id: int,
+        section_uuid: UUID,
+        question_text: dict 
+    ):
+        try:
+            # Assuming `Questions` is your SQLAlchemy model
+            new_question = Questions(
+                form_id=form_id,
+                question_id=question_id,
+                section_uuid=section_uuid,
+                question_text=question_text
+            )
 
-        self.db.add(new_question)
-        await self.db.commit()
-        await self.db.refresh(new_question)
-        return new_question
-    except SQLAlchemyError as e:
-        db.rollback()
-        raise RuntimeError(f"Database error while creating :{str(e)}")
+            self.db.add(new_question)
+            await self.db.commit()
+            await self.db.refresh(new_question)
+            return new_question
+
+        except SQLAlchemyError as e:
+            await self.db.rollback()
+            raise HTTPException(status_code=500, detail=f"Database error while creating question: {str(e)}")
     
 
 #read
 #all
-async def read_all_questions(self,db:AsyncSession):
-    try:
-        return self.db.query(questions).ordre_by().all()
-    except SQLAlchemyError as e:
-        raise RuntimeError(f"Database error while fetching all :{str(e)}")
-
-        
-#one at time
-async def read_questions_ID(self,db:AsyncSession,question_id:int):
-    try:
-        return self.db.query(questions).filter(questions.question_id == question_id).first()
-    except SQLAlchemyError as e:
-        raise RuntimeError(f"Database error while fetching ID :{str(e)}")
+async def get_questions(self, skip: int = 0, limit: int = 100):
+        query = select(Questions).offset(skip).limit(limit)
+        result = await self.db.execute(query)
+        return result.scalars().all()
 
 #update
 
@@ -61,7 +56,7 @@ async def update_question(self,
     order:int= None):
     
     try:
-        question = self.db.query(questions).filter(questions.question_id == question_id).first()
+        question = self.db.query(Questions).filter(Questions.question_id == question_id).first()
         if not question:
             raise ValueError(f"Question {question_id} not found.")
         
@@ -91,7 +86,7 @@ async def update_question(self,
 
 async def delete_question(self,db:AsyncSession,question_id: int):
     try:
-        question = self.db.query(questions).filter(questions.question_id == question_id).first()
+        question = self.db.query(Questions).filter(Questions.question_id == question_id).first()
         if not question:
             raise ValueError(f"Question {question_id} not found.")
         await db.delete(question)

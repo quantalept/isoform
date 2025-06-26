@@ -3,44 +3,33 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi import HTTPException
-from app.schemas.sections import SectionCreate, SectionUpdate, Section
+from app.schemas.sections import SectionCreate, SectionUpdate, SectionRead
+from app.models.sections import Sections as SectionModel
+
 
 class Section:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-async def create_section(self, 
-    db:AsyncSession, 
-    section_id:int, 
-    form_id:UUID, 
-    section_name:str, 
-    section_description:str, 
-    section_order:int
-    ):
-    try:
-        new_section = SectionCreate(
-                section_id=section_id, 
-                form_id=form_id,
-                section_name=section_name,
-                section_description=section_description,
-                section_order=section_order
-            )
+async def create_section(self, section_data: SectionCreate):
+        try:
+            new_section = SectionModel(**section_data.model_dump())
+            self.db.add(new_section)
+            await self.db.commit()
+            await self.db.refresh(new_section)
+            return new_section
 
-        self.db.add(new_section)
-        await self.db.commit()
-        await self.db.refresh(new_section)
-        return new_section
-
-    except SQLAlchemyError as e:
+        except SQLAlchemyError as e:
             if self.db.is_active:
                 await self.db.rollback()
             raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
-    except Exception as e:
+        except Exception as e:
             if self.db.is_active:
                 await self.db.rollback()
-            raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
-    
+            raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+        
+            
 async def read_sections(self,
         db:AsyncSession, 
         form_id:UUID, 
@@ -80,24 +69,19 @@ async def get_all_sections(self):
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
         
-async def update_section(self, 
-    section_name:str,
-    section_order:int,
-    section_description:str,
-    ):
-        try:
-            new_section = SectionUpdate(
-                section_name=section_name,
-                section_description=section_description,
-                section_order=section_order
-            )
-            self.db.add(new_section)
-            await self.db.commit()
-            await self.db.refresh(new_section)
-            return new_section
-        except Exception as e:
-            raise HTTPException(status_code=404, detail="Section not found")
 
+async def update_section(self, section_uuid: UUID, section_data: SectionUpdate):
+    section = await self.db.get(SectionModel, section_uuid)
+    if not section:
+        raise HTTPException(status_code=404, detail="Section not found")
+
+    update_data = section_data.dict(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(section, key, value)
+
+    await self.db.commit()
+    await self.db.refresh(section)
+    return section
 
 async def delete_section(self, section_id: UUID):
         try:

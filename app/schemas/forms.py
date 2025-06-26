@@ -14,7 +14,7 @@ class FormUpdateDTO(BaseModel):
     form_name: str | None = None
     form_description: str | None = None
     form_type: str | None = None
-    form_created_by: UUID4 | None = None
+
 
 class FormResponseDTO(FormBase):
     form_id: UUID4

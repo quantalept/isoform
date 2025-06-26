@@ -15,14 +15,21 @@ async def create_answer(
     db: AsyncSession = Depends(get_db)
 ):
     try:
-        answer = Answer(**new_answer.model_dump())
+        # Use model_dump() if using Pydantic v2; use dict() for v1
+        answer_data = new_answer.model_dump()
+        answer = Answer(**answer_data)
+
         db.add(answer)
         await db.commit()
         await db.refresh(answer)
-        return answer  
+        return answer
+
     except SQLAlchemyError as e:
         await db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Database error: " + str(e))
+    except TypeError as e:
+        # Handles issues like unexpected keyword arguments
+        raise HTTPException(status_code=400, detail="Invalid input: " + str(e))
 
 
 @router.get("/answers/{answer_id}", response_model=AnswerResponseDTO)

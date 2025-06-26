@@ -1,61 +1,64 @@
 from typing import List, Optional
-from fastapi import APIRouter, Depends,HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import SQLAlchemyError
 from app.db.session import get_db
-from app.crud.section import Section
-from app.schemas.sections import SectionCreate, SectionUpdate, Section
+from app.models.sections import Sections as SectionModel
+from app.crud.section import Section as SectionService
+from app.schemas.sections import SectionCreate, SectionUpdate, SectionRead  # Pydantic schemas
 from uuid import UUID
 
 router = APIRouter()
 
-
-@router.post("/sections/", response_model=Section, status_code=201)
+@router.post("/sections/", response_model=SectionRead, status_code=201)
 async def create_section(
-    section_data: Section,
+    section_data: SectionCreate,
     db: AsyncSession = Depends(get_db)
 ):
-    new_section = Section(**section_data.model_dump())
-    db.add(new_section)
-    await db.commit()
-    await db.refresh(new_section)
-    return new_section
+    try:
+        new_section = SectionModel(**section_data.model_dump())
+        db.add(new_section)
+        await db.commit()
+        await db.refresh(new_section)
+        return new_section
+
+    except SQLAlchemyError as e:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
 
-@router.get("/sections/", response_model=List[Section])
+@router.get("/sections/", response_model=List[SectionRead])
 async def read_sections(
     form_id: Optional[UUID] = None,
     db: AsyncSession = Depends(get_db)
 ):
-    query = select(Section)
+    query = select(SectionModel)  # NOT SectionService or anything else
     if form_id:
-        query = query.filter(Section.form_id == form_id)
+        query = query.filter(SectionModel.form_id == form_id)
 
     result = await db.execute(query)
     return result.scalars().all()
 
-@router.put("/sections/{section_id}", response_model=Section)
+
+@router.put("/sections/{section_uuid}", response_model=SectionRead)
 async def update_section(
-    section_id: int,
-    section_data: Section,
+    section_uuid: UUID,
+    section_data: SectionUpdate,
     db: AsyncSession = Depends(get_db)
 ):
-    result = await db.execute(select(Section).filter(Section.section_id == section_id))
-    section = result.scalar_one_or_none()
+    service = SectionService(db)
+    updated_section = await service.update_section(section_uuid, section_data)
+    return updated_section
 
-    if not section:
-        raise HTTPException(status_code=404, detail="Section not found")
-
-    for key, value in section_data.model_dump(exclude_unset=True).items():
-        setattr(section, key, value)
-
-    await db.commit()
-    await db.refresh(section)
-    return section
 
 @router.delete("/sections/{section_id}", status_code=204)
 async def delete_section(section_id: int, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Section).filter(Section.section_id == section_id))
+    result = await db.execute(select(SectionService).filter(SectionService.section_id == section_id))
     section = result.scalar_one_or_none()
 
     if not section:
@@ -63,4 +66,4 @@ async def delete_section(section_id: int, db: AsyncSession = Depends(get_db)):
 
     await db.delete(section)
     await db.commit()
-    return 
+    return

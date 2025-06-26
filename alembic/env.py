@@ -14,8 +14,8 @@ sys.path.append(os.path.abspath("."))
 
 # Import your models' Base
 from app.db.base import Base  # adjust import to your project
-from app.models import user   # make sure all models are imported somewhere
-
+#from app.models import user   # make sure all models are imported somewhere
+from app.models import admin_user
 # Alembic Config
 config = context.config
 
