@@ -17,6 +17,7 @@ class FormsModel(Base):
     form_updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now, nullable=False)
     form_created_by = Column(UUID(as_uuid=True),ForeignKey('admin_user.admin_user_id'), nullable=False)
 
+
     admin_user = relationship("AdminUserModel", back_populates="forms")
     questions = relationship("Questions", back_populates="form")
     logics = relationship("Logic", back_populates="form", cascade="all, delete-orphan")

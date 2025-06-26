@@ -1,9 +1,13 @@
+from typing import List
 from uuid import UUID
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
+from app.models import FormsModel
 from app.crud.forms import FormsService
 from app.schemas.forms import FormCreateDTO, FormResponseDTO , FormUpdateDTO
+from app.crud.forms import get_forms_by_user_id
 
 router = APIRouter()
 
@@ -34,3 +38,10 @@ async def delete_form(form_id: str, db: AsyncSession = Depends(get_db)):
     await form_service.delete_form(form_id=form_id)
     return {"message": "Form deleted successfully"}
 
+@router.get("/users/{user_id}/forms", response_model=List[FormResponseDTO])
+async def get_forms_by_admin_user(
+    user_id: UUID,
+    session: AsyncSession = Depends(get_db)
+):
+    forms = await get_forms_by_user_id(user_id, session)
+    return forms

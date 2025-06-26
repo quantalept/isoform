@@ -6,6 +6,7 @@ from fastapi import HTTPException
 from app.models.forms import FormsModel
 from app.schemas.forms import FormCreateDTO, FormResponseDTO,FormUpdateDTO
 from email_validator import validate_email,EmailNotValidError
+from sqlalchemy.ext.asyncio import AsyncSession
 import bcrypt
 
 
@@ -68,3 +69,10 @@ class FormsService:
 
         await self.db.delete(form)
         await self.db.commit()
+
+    
+async def get_forms_by_user_id(user_id: UUID, session: AsyncSession) -> List[FormsModel]:
+    result = await session.execute(
+        select(FormsModel).where(FormsModel.form_created_by == user_id)
+    )
+    return result.scalars().all()

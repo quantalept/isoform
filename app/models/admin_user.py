@@ -11,5 +11,4 @@ class AdminUserModel(Base):
     username = Column(String)
     email = Column(String, unique=True, nullable=False)
     hashed_password = Column(String)
-
     forms = relationship("FormsModel", back_populates="admin_user", cascade="all, delete-orphan")
