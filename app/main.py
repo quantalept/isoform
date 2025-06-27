@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
 from sqlalchemy.future import select
 from app.api import admin_user,questions,forms,sections,answers
+from app.service import login
 
 app = FastAPI()
 
@@ -14,6 +15,7 @@ async def read_users(session: AsyncSession = Depends(get_db)):
     return users
 
 
+app.include_router(login.router, prefix="/auth", tags=["Login"])
 app.include_router(admin_user.router, prefix="/forms", tags=["Users"])
 app.include_router(forms.router, prefix="/forms", tags=["Forms"])
 app.include_router(sections.router, prefix="/forms", tags=["Sections"])
